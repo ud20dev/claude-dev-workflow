@@ -1,0 +1,41 @@
+name: Merge PROGRESS.md
+
+# Rebuilds docs/PROGRESS.md from docs/frontend/PROGRESS.md + docs/backend/PROGRESS.md
+# whenever main moves (including a PR merge). Runs once, server-side, so there's
+# never more than one commit doing the rebuild — no risk of two devs' machines
+# both regenerating and fighting over the push. See docs/CLAUDE.md > "Fusion des
+# PROGRESS.md" and .claude/scripts/merge-progress.sh.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/frontend/PROGRESS.md"
+      - "docs/backend/PROGRESS.md"
+
+permissions:
+  contents: write
+
+jobs:
+  merge-progress:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Rebuild docs/PROGRESS.md
+        run: .claude/scripts/merge-progress.sh
+
+      - name: Commit if changed
+        run: |
+          if git diff --quiet -- docs/PROGRESS.md; then
+            echo "docs/PROGRESS.md already up to date."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/PROGRESS.md
+          git commit -m "chore: merge docs/PROGRESS.md [skip ci]"
+          git push

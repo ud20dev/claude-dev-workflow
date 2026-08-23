@@ -22,7 +22,7 @@
 - États :
 - Actions :
 ```
-> Le statut d'avancement de chaque page vit uniquement dans PROGRESS.md (racine de `docs/`) — ne pas le dupliquer ici.
+> Le statut d'avancement de chaque page vit uniquement dans `frontend/PROGRESS.md` — ne pas le dupliquer ici.
 
 ---
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# SessionStart hook: injects docs/CLAUDE.md + the latest sessions of docs/PROGRESS.md
-# into context automatically, and checks the template version in silence.
+# SessionStart hook: injects docs/CLAUDE.md + the latest sessions of both
+# docs/frontend/PROGRESS.md and docs/backend/PROGRESS.md into context
+# automatically, and checks the template version in silence.
 set -uo pipefail
 
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
@@ -25,8 +26,15 @@ if [ -f "$DOCS/CLAUDE.md" ]; then
   echo "---"
 fi
 
-# 3. PROGRESS.md - everything up to "## Sessions" in full (current-state tables),
-#    then only the latest N session entries (delimiter: "### Session").
-if [ -f "$DOCS/PROGRESS.md" ]; then
-  awk -v n="$SESSIONS_KEPT" '/^### Session/{c++} c>n{next} 1' "$DOCS/PROGRESS.md"
-fi
+# 3. frontend/PROGRESS.md + backend/PROGRESS.md - everything up to "## Sessions"
+#    in full (current-state tables), then only the latest N session entries
+#    (delimiter: "### Session"). The layer of the upcoming task isn't known
+#    yet at session start, so both are loaded; docs/PROGRESS.md (root) is
+#    never loaded here — it's a generated, merged-on-main snapshot, not the
+#    working memory. See docs/CLAUDE.md > "Fusion des PROGRESS.md".
+for LAYER_PROGRESS in "$DOCS/frontend/PROGRESS.md" "$DOCS/backend/PROGRESS.md"; do
+  if [ -f "$LAYER_PROGRESS" ]; then
+    awk -v n="$SESSIONS_KEPT" '/^### Session/{c++} c>n{next} 1' "$LAYER_PROGRESS"
+    echo "---"
+  fi
+done

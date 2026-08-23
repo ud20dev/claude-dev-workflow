@@ -8,7 +8,7 @@
 ## Comment utiliser ce fichier
 1. Une page/fonctionnalité frontend est construite en mock, faute d'endpoint → ajouter une entrée ici immédiatement (règle absolue, voir `CLAUDE.md`)
 2. Début d'une tâche backend → lire ce fichier pour savoir quoi construire en priorité
-3. Une fois l'endpoint construit et branché côté frontend → retirer l'entrée (ou la réduire à une ligne dans `PROGRESS.md`)
+3. Une fois l'endpoint construit et branché côté frontend → retirer l'entrée (ou la réduire à une ligne dans `backend/PROGRESS.md`)
 
 ---
 
