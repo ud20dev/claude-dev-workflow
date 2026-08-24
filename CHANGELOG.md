@@ -6,7 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-> Slated for 2.0.0 — not released yet, `README.md` and `docs/CLAUDE.md` still show 1.1.0 on purpose. Both version lines only move together, in the same commit, the moment this is actually ready to ship — see the "Versioning" decision in `CONTRIBUTING.md` for why.
+
+## [2.0.0] - 2026-08-24
 
 ### Added
 
