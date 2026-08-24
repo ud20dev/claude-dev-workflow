@@ -1,5 +1,5 @@
 # claude-dev-workflow
-> Version 1.2.0 (WIP, do not use or update to this version yet)
+> Version 2.0.0 (WIP, do not use or update to this version yet)
 
 Un système de documentation structuré pour travailler efficacement avec Claude sur des projets web.
 
@@ -36,7 +36,7 @@ Et une séparation nette entre ce qui appartient au projet entier et ce qui appa
 Copier cette ligne et la coller à Claude au début de chaque session :
 
 ```
-Lis docs/CLAUDE.md, vérifie les mises à jour, puis lis docs/PROGRESS.md et dis-moi où on en est en 5 lignes maximum
+Lis docs/CLAUDE.md, vérifie les mises à jour, puis lis docs/frontend/PROGRESS.md et/ou docs/backend/PROGRESS.md selon la couche, et dis-moi où on en est en 5 lignes maximum
 ```
 
 ---
@@ -47,12 +47,13 @@ Lis docs/CLAUDE.md, vérifie les mises à jour, puis lis docs/PROGRESS.md et dis
 docs/
 ├── CLAUDE.md      — orchestrateur, lu en premier toujours
 ├── CONTEXT.md     — partagés : vision et suivi du projet
-├── PROGRESS.md    —   entier, jamais dupliqués par couche
-├── DECISIONS.md
+├── PROGRESS.md    —   ⚠️ GÉNÉRÉ automatiquement, ne jamais éditer (voir plus bas)
+├── DECISIONS.md   —   entier, jamais dupliqués par couche
 ├── CHANGELOG.md   — journal humain, pas lu automatiquement par Claude
 ├── STACK.md
 ├── SECURITY.md
 ├── frontend/
+│   ├── PROGRESS.md       — snapshot frontend : phases, avancement, sessions
 │   ├── STYLE.md          — design system, neutre vis-à-vis de la stack
 │   ├── style-picker.html — outil local pour calibrer visuellement le style avant de remplir STYLE.md
 │   ├── UI-QUALITY.md     — direction artistique, vérifiée avant de livrer une interface
@@ -62,6 +63,7 @@ docs/
 │   ├── ERRORS.md    — bugs frontend résolus
 │   └── FEEDBACK.md  — réflexes IA à corriger côté frontend
 └── backend/
+    ├── PROGRESS.md  — snapshot backend : phases, avancement, sessions
     ├── DATABASE.md
     ├── TODO.md      — ce que le backend doit encore construire, déduit du frontend déjà fait en mock
     ├── ERRORS.md    — bugs backend résolus
@@ -69,6 +71,8 @@ docs/
 ```
 
 `CLAUDE.md` est le cerveau : c'est lui qui détermine, pour chaque tâche, s'il faut lire dans `frontend/`, `backend/`, ou les fichiers partagés à la racine — jamais tout `docs/` en bloc.
+
+**Pourquoi `PROGRESS.md` fait exception** : un dev frontend et un dev backend sur des branches séparées qui éditent le même fichier de suivi finissent en conflit git. Chacun a désormais son propre `PROGRESS.md`, jamais touché par l'autre couche ; celui à la racine de `docs/` est une reconstruction automatique des deux (`.claude/scripts/merge-progress.sh`), déclenchée sur GitHub à chaque merge sur `main` (`.github/workflows/merge-progress.yml`) — ou à la main sur un projet sans GitHub Actions. Détails dans `docs/CLAUDE.md` > "Fusion des PROGRESS.md".
 
 ---
 
@@ -81,7 +85,8 @@ Claude ne lit que ce qui est utile pour la tâche en cours...
 |---------|------|-----------------|
 | CLAUDE.md | Point d'entrée, orchestrateur | Lu une seule fois au démarrage |
 | CONTEXT.md | Vision du produit | Lu uniquement en première session |
-| PROGRESS.md | Suivi des sessions | Lu à chaque début de session |
+| frontend/PROGRESS.md, backend/PROGRESS.md | Suivi des sessions, par couche | Lu et modifié à chaque début/fin de session — jamais l'autre couche |
+| PROGRESS.md (racine) | Vue fusionnée des deux ci-dessus | Généré automatiquement, jamais lu ni édité en session |
 | DECISIONS.md | Choix techniques | Lu avant toute nouvelle solution |
 | CHANGELOG.md | Journal humain du projet, en langage clair | Jamais lu automatiquement par Claude — pour un nouveau développeur qui découvre le projet |
 | STACK.md | Technologies | Lu avant toute installation |
@@ -109,7 +114,7 @@ Et un réflexe CSS n'a rien à faire dans le contexte d'une tâche sur l'API.
 
 | Action | Commande |
 |--------|----------|
-| Début de session | "Lis docs/CLAUDE.md puis docs/PROGRESS.md" |
+| Début de session | "Lis docs/CLAUDE.md puis docs/frontend/PROGRESS.md et/ou docs/backend/PROGRESS.md" |
 | Travailler sur une page | "Lis docs/frontend/PAGES.md section [nom] et docs/frontend/STYLE.md" |
 | Créer un composant | "Lis docs/frontend/COMPONENTS.md et docs/frontend/STYLE.md" |
 | Savoir quoi construire côté backend | "Lis docs/backend/TODO.md" |
@@ -120,7 +125,8 @@ Et un réflexe CSS n'a rien à faire dans le contexte d'une tâche sur l'API.
 | Réflexe IA à corriger (frontend) | "Ajoute dans docs/frontend/FEEDBACK.md — [pattern]" |
 | Réflexe IA à corriger (backend) | "Ajoute dans docs/backend/FEEDBACK.md — [pattern]" |
 | Installer un preset de style | "Installe le preset [nom]" — copie docs/frontend/presets/[nom].md vers docs/frontend/preset-actif.md |
-| Fin de session | "Mets à jour docs/PROGRESS.md session [numéro]" |
+| Fin de session | "Mets à jour docs/frontend/PROGRESS.md (ou backend) session [numéro]" |
+| Fusionner PROGRESS.md à la main (sans GitHub Actions) | "Fusionne PROGRESS.md" |
 | Vérifier une mise à jour du template | "Vérifie si le template a une mise à jour" (fait aussi automatiquement à chaque début de session) |
 
 ---
@@ -129,7 +135,7 @@ Et un réflexe CSS n'a rien à faire dans le contexte d'une tâche sur l'API.
 
 Chaque projet garde son propre `docs/` — rempli au fil des sessions, jamais écrasé automatiquement.
 `docs/CLAUDE.md` porte un numéro de version et vérifie tout seul, à chaque début de session, si une version plus récente du template existe.
-En cas de mise à jour disponible, Claude te préviens et attend ton accord — puis n'ajoute que ce qui manque (nouveaux fichiers, nouvelles règles). **Rien de ce que tu as déjà rempli n'est jamais modifié ou supprimé.**
+En cas de mise à jour disponible, Claude te préviens et attend ton accord — puis n'ajoute que ce qui manque (nouveaux fichiers dans `docs/`, `.claude/` ou `.github/`, nouvelles règles). **Rien de ce que tu as déjà rempli n'est jamais modifié ou supprimé.**
 Détail de la procédure dans `docs/CLAUDE.md` > "Mise à jour du template".
 
 ---
@@ -142,6 +148,7 @@ Détail de la procédure dans `docs/CLAUDE.md` > "Mise à jour du template".
 | Tokens gaspillés sur le contexte | Tokens utilisés sur le vrai travail |
 | Design incohérent entre les pages | Un seul STYLE.md appliqué partout |
 | Progression perdue entre sessions | Sessions numérotées dans PROGRESS.md |
+| Conflit git entre dev frontend et backend sur le suivi | Chacun son PROGRESS.md, fusion automatique sur main |
 | Projet abandonné quand on se perd | Prochaine étape claire à chaque session |
 
 ---
@@ -155,7 +162,7 @@ cd ton-projet
 curl -fsSL https://raw.githubusercontent.com/ud20-dev/claude-dev-workflow/main/install.sh | bash
 ```
 
-Installe `docs/` et `.claude/` (hook `SessionStart` qui charge `docs/CLAUDE.md` et les sessions récentes automatiquement, script de migration `changelog.sh`) directement à la racine de `ton-projet`. N'écrase jamais un fichier existant — s'arrête sans rien toucher si `docs/` ou `.claude/settings.json`/`hooks`/`scripts` existent déjà.
+Installe `docs/`, `.claude/` (hook `SessionStart` qui charge `docs/CLAUDE.md` et les sessions récentes automatiquement, scripts `changelog.sh`/`merge-progress.sh`, skills `bum-dev`/`minmax`/`unslop`) et `.github/workflows/merge-progress.yml` directement à la racine de `ton-projet`. N'écrase jamais un fichier existant — s'arrête sans rien toucher si `docs/`, `.claude/settings.json`/`hooks`/`scripts`/`SKILLS` ou le workflow existent déjà.
 
 **Option 2 — clone local, sans réseau au moment de l'installation :**
 
@@ -165,7 +172,7 @@ cd ton-projet
 ~/claude-dev-workflow/install.sh
 ```
 
-Même résultat que l'option 1 — `install.sh` détecte le clone local et copie `docs/`/`.claude/` depuis celui-ci plutôt que de les télécharger.
+Même résultat que l'option 1 — `install.sh` détecte le clone local et copie `docs/`/`.claude/`/`.github/` depuis celui-ci plutôt que de les télécharger.
 
 ---
 
