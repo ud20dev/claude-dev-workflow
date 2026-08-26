@@ -1,5 +1,5 @@
 # claude-dev-workflow
-> Version 2.0.0
+> Version 2.1.0
 
 Un système de documentation structuré pour travailler efficacement avec Claude sur des projets web.
 
@@ -36,7 +36,7 @@ Et une séparation nette entre ce qui appartient au projet entier et ce qui appa
 Copier cette ligne et la coller à Claude au début de chaque session :
 
 ```
-Lis docs/CLAUDE.md, vérifie les mises à jour, puis lis docs/frontend/PROGRESS.md et/ou docs/backend/PROGRESS.md selon la couche, et dis-moi où on en est en 5 lignes maximum
+Lis docs/CLAUDE.md, puis lis docs/frontend/PROGRESS.md et/ou docs/backend/PROGRESS.md selon la couche, et dis-moi où on en est en 5 lignes maximum
 ```
 
 ---
@@ -72,7 +72,7 @@ docs/
 
 `CLAUDE.md` est le cerveau : c'est lui qui détermine, pour chaque tâche, s'il faut lire dans `frontend/`, `backend/`, ou les fichiers partagés à la racine — jamais tout `docs/` en bloc.
 
-**Pourquoi `PROGRESS.md` fait exception** : un dev frontend et un dev backend sur des branches séparées qui éditent le même fichier de suivi finissent en conflit git. Chacun a désormais son propre `PROGRESS.md`, jamais touché par l'autre couche ; celui à la racine de `docs/` est une reconstruction automatique des deux (`.claude/scripts/merge-progress.sh`), déclenchée sur GitHub à chaque merge sur `main` (`.github/workflows/merge-progress.yml`) — ou à la main sur un projet sans GitHub Actions. Détails dans `docs/CLAUDE.md` > "Fusion des PROGRESS.md".
+**Pourquoi `PROGRESS.md` fait exception** : un dev frontend et un dev backend sur des branches séparées qui éditent le même fichier de suivi finissent en conflit git. Chacun a désormais son propre `PROGRESS.md`, jamais touché par l'autre couche ; celui à la racine de `docs/` est une reconstruction automatique des deux (`.claude/scripts/merge-progress.sh`), déclenchée sur GitHub dès qu'un push sur `main` touche l'un des deux fichiers (`.github/workflows/merge-progress.yml`) — ou à la main sur un projet sans GitHub Actions. Détails dans `docs/CLAUDE.md` > "Fusion des PROGRESS.md".
 
 ---
 
@@ -162,7 +162,7 @@ cd ton-projet
 curl -fsSL https://raw.githubusercontent.com/ud20-dev/claude-dev-workflow/main/install.sh | bash
 ```
 
-Installe `docs/`, `.claude/` (hook `SessionStart` qui charge `docs/CLAUDE.md` et les sessions récentes automatiquement, scripts `changelog.sh`/`merge-progress.sh`, skills `bum-dev`/`minmax`/`unslop`) et `.github/workflows/merge-progress.yml` directement à la racine de `ton-projet`. N'écrase jamais un fichier existant — s'arrête sans rien toucher si `docs/`, `.claude/settings.json`/`hooks`/`scripts`/`SKILLS` ou le workflow existent déjà.
+Installe `docs/`, `.claude/` (hook `SessionStart` qui charge `docs/CLAUDE.md` et les sessions récentes automatiquement, scripts `changelog.sh`/`merge-progress.sh`/`apply-update.sh`, skills `bum-dev`/`minmax`/`unslop`) et `.github/workflows/merge-progress.yml` directement à la racine de `ton-projet`. N'écrase jamais un fichier existant — s'arrête sans rien toucher si `docs/`, `.claude/settings.json`/`hooks`/`scripts`/`SKILLS` ou le workflow existent déjà.
 
 **Option 2 — clone local, sans réseau au moment de l'installation :**
 

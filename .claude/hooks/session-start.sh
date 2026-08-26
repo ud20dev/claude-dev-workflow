@@ -10,19 +10,34 @@ TEMPLATE_README_URL="https://raw.githubusercontent.com/ud20-dev/claude-dev-workf
 SESSIONS_KEPT=3
 
 # 1. Version check - silent unless there's an actual update. No network / no match → say nothing.
+UPDATE_AVAILABLE=0
 if [ -f "$DOCS/CLAUDE.md" ]; then
   LOCAL_VERSION=$(grep -m1 -oE '[0-9]+\.[0-9]+\.[0-9]+' "$DOCS/CLAUDE.md" 2>/dev/null)
   REMOTE_VERSION=$(curl -sf --max-time 2 "$TEMPLATE_README_URL" 2>/dev/null | grep -m1 -oE '[0-9]+\.[0-9]+\.[0-9]+')
 
   if [ -n "$LOCAL_VERSION" ] && [ -n "$REMOTE_VERSION" ] && [ "$LOCAL_VERSION" != "$REMOTE_VERSION" ]; then
+    UPDATE_AVAILABLE=1
     echo "TEMPLATE UPDATE AVAILABLE: installed $LOCAL_VERSION, latest $REMOTE_VERSION. Mention it to the user once; run .claude/scripts/changelog.sh for what changed and how to migrate, only apply it if they agree."
     echo "---"
   fi
 fi
 
-# 2. Orchestrator file - fixed reference content, loaded in full every time.
+# 2. Orchestrator file - fixed reference content, loaded every time. The
+#    "Mise à jour du template" section (~24% of the file's words) is only
+#    ever actionable on the rare session where an update is actually
+#    available — it's dropped from the injected copy otherwise and read on
+#    demand instead (Claude can still open docs/CLAUDE.md directly). Same
+#    content either way, never rewritten, just not force-fed every session.
 if [ -f "$DOCS/CLAUDE.md" ]; then
-  cat "$DOCS/CLAUDE.md"
+  if [ "$UPDATE_AVAILABLE" = "1" ]; then
+    cat "$DOCS/CLAUDE.md"
+  else
+    awk '
+      /^## Mise à jour du template$/ { skip=1; next }
+      skip && /^## / { skip=0 }
+      !skip { print }
+    ' "$DOCS/CLAUDE.md"
+  fi
   echo "---"
 fi
 

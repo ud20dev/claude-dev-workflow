@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-08-24
+
+### Added
+
+- `.claude/scripts/apply-update.sh`: automates the purely mechanical part of a template update — clones the latest template and copies any file entirely missing locally in `.claude/hooks/`, `.claude/scripts/`, `.claude/SKILLS/`, `.github/workflows/`, and `docs/`, never overwriting anything. Leaves only `docs/CLAUDE.md` (line-level additions) and `.claude/settings.json` (new keys) for judgment-based comparison, instead of six separate locations checked by hand. `docs/CLAUDE.md` > "Mise à jour du template" now calls it at step 2.
+- `docs/CLAUDE.md` > "Aiguillage" now routes security work to `SECURITY.md` explicitly (previously only reachable via the catch-all "neither layer" row — a security bug on either layer would never surface it).
+- A closing note under the "Index — quand lire quoi" table: grep `### ` titles in `ERRORS.md`/`FEEDBACK.md`/`DECISIONS.md` before reading one in full, once it's grown large.
+
+### Changed
+
+- `.claude/hooks/session-start.sh` no longer injects the full "Mise à jour du template" procedure (~24% of `docs/CLAUDE.md`'s word count) on every session — only when an update is actually available. Same content, still fully readable on demand, just not force-fed on the vast majority of sessions where it's not actionable.
+
+### Fixed
+
+- `.claude/scripts/merge-progress.sh`: a session entry containing a fenced code block whose content happened to start with `### Session` was misparsed as a new session boundary, silently fragmenting that entry. Session splitting is now fence-aware.
+- `.claude/scripts/merge-progress.sh`: two sessions sharing the same date had their order inverted in the merged output (older one first). Fixed the sort key so ties resolve to source order (newest-on-top, per the LIFO convention).
+- `.claude/scripts/apply-update.sh`: a failed fetch (no network, DNS failure) was silently swallowed — `curl`'s exit status was lost in the `curl | tar` pipe (an empty stream still makes `tar` exit 0), so the script reported "nothing to add" instead of failing loudly. Now fetches to a file first and checks both the exit code and that the file isn't empty before extracting.
+- `.claude/scripts/changelog.sh`: a project on 1.x checking for updates against a hypothetical future 3.x+ release would silently get the "1.x to 2.x" migration text as if it were complete and correct for that jump. Now warns explicitly when the known migration steps don't cover the actual version gap.
+
 ## [2.0.0] - 2026-08-24
 
 ### Added

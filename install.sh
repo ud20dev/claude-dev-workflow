@@ -84,6 +84,7 @@ echo "  .claude/settings.json"
 echo "  .claude/hooks/session-start.sh"
 echo "  .claude/scripts/changelog.sh"
 echo "  .claude/scripts/merge-progress.sh"
+echo "  .claude/scripts/apply-update.sh"
 echo "  .claude/SKILLS/ (bum-dev, minmax, unslop)"
 if [ -f "$DEST_WORKFLOW" ]; then
   echo "  .github/workflows/merge-progress.yml — fusionne docs/PROGRESS.md automatiquement à chaque push sur main (nécessite GitHub Actions ; sinon lancer .claude/scripts/merge-progress.sh à la main)"

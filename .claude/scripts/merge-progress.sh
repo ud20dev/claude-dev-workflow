@@ -68,7 +68,8 @@ split_sessions() {
   awk -v layer="$layer" -v outdir="$TMPDIR" '
     /^## Sessions$/ { insession=1; next }
     insession && /^<!-- SENTINEL/ { next }
-    insession && /^### Session/ {
+    insession && /^```/ { infence = !infence; if (current != "") print > current; next }
+    insession && !infence && /^### Session/ {
       n++
       key = "00000000"
       if (match($0, /[0-9]{2}\/[0-9]{2}\/[0-9]{4}/)) {
@@ -77,7 +78,10 @@ split_sessions() {
       }
       line = $0
       sub(/^### Session/, "### [" layer "] Session", line)
-      outfile = outdir "/" key "-" layer "-" sprintf("%03d", n) ".md"
+      # Sub-key counts DOWN from a high value so that, within the same date,
+      # the entry encountered first (LIFO: newest-on-top in the source file)
+      # gets a HIGHER sub-key and so sorts first under the final `sort -r`.
+      outfile = outdir "/" key "-" layer "-" sprintf("%03d", 999 - n) ".md"
       print line > outfile
       current = outfile
       next

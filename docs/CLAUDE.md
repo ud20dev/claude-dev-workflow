@@ -1,5 +1,5 @@
 # CLAUDE
-> Version du template : 2.0.0
+> Version du template : 2.1.0
 > LIRE EN PREMIER. Toujours. Sans exception.
 > Ce fichier est le cerveau du projet — il n'explique rien lui-même, il oriente vers `docs/frontend/`, `docs/backend/` ou les fichiers partagés à la racine de `docs/`.
 > Ne jamais supposer le contexte — lire `docs/frontend/PROGRESS.md` et/ou `docs/backend/PROGRESS.md` selon la couche juste après.
@@ -48,7 +48,7 @@ Règle de fond : tout ce qui définit le projet dans son ensemble (vision, déci
 
 **Projet à une seule couche** (API sans frontend, site statique sans backend) : ignorer le dossier qui ne s'applique pas — pas besoin de le supprimer, il reste simplement vide et n'est jamais lu.
 
-En dehors de `docs/`, `.claude/settings.json` et `.claude/hooks/session-start.sh` chargent automatiquement ce fichier et les sessions récentes en début de session, et `.claude/scripts/changelog.sh` affiche ce qui a changé en amont et comment migrer (voir "Mise à jour du template").
+En dehors de `docs/`, `.claude/settings.json` et `.claude/hooks/session-start.sh` chargent automatiquement ce fichier et les sessions récentes en début de session, `.claude/scripts/changelog.sh` affiche ce qui a changé en amont et comment migrer, et `.claude/scripts/apply-update.sh` applique automatiquement la partie mécanique d'une mise à jour (voir "Mise à jour du template").
 
 ---
 
@@ -59,7 +59,7 @@ Un dev frontend et un dev backend qui travaillent sur des branches séparées ma
 
 - `frontend/PROGRESS.md` et `backend/PROGRESS.md` sont les seuls fichiers édités pendant une session — chacun n'appartient qu'à sa couche, jamais touché par l'autre. Numérotation de session indépendante par fichier (Session 001, 002... de chaque côté) — pas de compteur partagé à synchroniser.
 - `docs/PROGRESS.md` (racine) n'est **jamais édité à la main**. C'est une reconstruction mécanique des deux fichiers ci-dessus — littéralement leurs sections recollées, sessions des deux couches interclassées par date — produite par `.claude/scripts/merge-progress.sh`.
-- Sur un projet hébergé sur GitHub avec Actions activé, cette reconstruction tourne automatiquement et une seule fois, côté serveur, à chaque fois que `main` bouge (`.github/workflows/merge-progress.yml`, déclenché par un push sur `main` — donc aussi par un merge de PR). Sans ça, aucun risque que deux machines régénèrent le fichier chacune de son côté et se marchent dessus au push.
+- Sur un projet hébergé sur GitHub avec Actions activé, cette reconstruction tourne automatiquement et une seule fois, côté serveur, dès qu'un push sur `main` touche `frontend/PROGRESS.md` ou `backend/PROGRESS.md` (`.github/workflows/merge-progress.yml`, filtré par `paths:` — donc aussi via un merge de PR qui les modifie, mais pas un push qui ne les touche pas). Sans ça, aucun risque que deux machines régénèrent le fichier chacune de son côté et se marchent dessus au push.
 - Sur un projet sans GitHub Actions : lancer `.claude/scripts/merge-progress.sh` à la main avant de merger sur main (voir "Commandes utiles").
 - Les champs qui ne sont ni frontend ni backend (Phases du projet, Phase actuelle, Progression globale) sont dupliqués dans les deux fichiers — la reconstruction garde la version du fichier modifié le plus récemment (comparaison par historique git, pas par contenu).
 - Rien de tout ça ne change `backend/TODO.md` : c'est déjà le canal dédié pour prévenir le backend qu'une tâche l'attend (page frontend construite en mock faute d'endpoint), indépendant de PROGRESS.md.
@@ -131,6 +131,7 @@ Une nouvelle information à ajouter : identifier d'abord son axe, puis chercher 
 |---|---|---|
 | Interface, page, composant, CSS, formulaire | **Frontend** | `docs/frontend/` — STYLE.md, PAGES.md, COMPONENTS.md, ERRORS.md, FEEDBACK.md |
 | API, base de données, auth, logique serveur | **Backend** | `docs/backend/` — DATABASE.md, ERRORS.md, FEEDBACK.md |
+| Faille ou risque de sécurité, sur n'importe quelle couche | **Frontend et/ou Backend + SECURITY.md** | Fichiers de la couche concernée **plus** `docs/SECURITY.md` systématiquement — jamais l'un sans l'autre |
 | Les deux (ex. feature bout-en-bout) | **Frontend + Backend** | Lire les fichiers concernés dans les deux dossiers, jamais tout en bloc |
 | Ni l'un ni l'autre (setup, déploiement, décision) | — | `docs/STACK.md`, `docs/DECISIONS.md`, `docs/SECURITY.md` selon le cas |
 
@@ -162,6 +163,8 @@ Si le doute persiste après cette table → demander à l'utilisateur plutôt qu
 | frontend/FEEDBACK.md | Avant une tâche frontend où un réflexe IA connu pourrait se reproduire |
 | backend/FEEDBACK.md | Avant une tâche backend où un réflexe IA connu pourrait se reproduire |
 | SECURITY.md | Avant/après tout travail de sécurité — liste des failles à corriger |
+
+`ERRORS.md`/`FEEDBACK.md`/`DECISIONS.md` grossissent sans limite au fil des mois — chaque entrée a un titre `### [Titre]` dès le départ pour ça : sur un fichier devenu volumineux, grep par mot-clé sur les titres avant de tout lire en entier, plutôt que de payer une lecture complète à chaque bug/décision.
 
 ---
 
@@ -201,16 +204,15 @@ Si le doute persiste après cette table → demander à l'utilisateur plutôt qu
 Si l'utilisateur accepte la mise à jour :
 0. Lancer `.claude/scripts/changelog.sh` — affiche le changelog amont et, pour un changement de version majeure connu (ex. 1.x → 2.x), les étapes de migration structurelle spécifiques (réordonnancement FIFO → LIFO). Le suivre en plus des étapes ci-dessous, pas à leur place — `changelog.sh` couvre la restructuration d'un fichier existant, les étapes 1-9 couvrent l'ajout de fichiers/lignes manquants
 1. Vérifier `git status` sur le projet — si des changements non commités existent, le dire et demander de commiter ou stasher d'abord ; ne rien appliquer sur un état de travail sale. Filet de sécurité : même en cas d'erreur dans les étapes suivantes, tout reste annulable d'un simple `git diff`/`git restore`
-2. Cloner `https://github.com/ud20-dev/claude-dev-workflow` dans un dossier temporaire
-3. Comparer **trois choses** entre le clone et le projet, jamais seulement `docs/CLAUDE.md` :
-   - `docs/CLAUDE.md` — nouveautés dans la structure, nouvelles lignes dans "Règles absolues"/"Index"/"Commandes utiles" absentes du projet
-   - `.claude/` — nouveaux fichiers absents du projet dans `hooks/`, `scripts/` et `SKILLS/` (ex. `session-start.sh`, `changelog.sh`, `merge-progress.sh`, un nouveau skill), nouvelles clés absentes dans `settings.json`
-   - `.github/workflows/` — nouveaux workflows absents du projet (ex. `merge-progress.yml`)
+2. Lancer `.claude/scripts/apply-update.sh` — clone le template et copie automatiquement, en une passe, tout fichier entièrement absent localement dans `.claude/hooks/`, `.claude/scripts/`, `.claude/SKILLS/`, `.github/workflows/` et `docs/` (jamais un fichier déjà présent, jamais écrasé). Il affiche la liste de ce qu'il a ajouté et laisse le clone temporaire en place — son chemin est affiché à la fin, réutilisé à l'étape 3
+3. Il ne reste plus que **deux choses** à comparer à la main entre le clone (toujours là depuis l'étape 2) et le projet — les seuls endroits où une nouveauté du template est une ligne/clé à l'intérieur d'un fichier qui existe déjà, pas un fichier entier à copier :
+   - `docs/CLAUDE.md` — nouvelles lignes dans "Règles absolues"/"Index"/"Commandes utiles" absentes du projet
+   - `.claude/settings.json` — nouvelles clés absentes
    
-   Le sens de la comparaison ne va que dans un sens sur les trois : chercher ce que le **template** a en plus, jamais ce que le **projet** a en plus
-4. **Règle stricte, jamais d'exception** : uniquement AJOUTER ce qui manque — un fichier absent (ex. un futur `backend/[NOM].md`, ou un script `.claude/scripts/[nom].sh`) se copie tel quel ; une ligne absente d'une table ou d'un JSON s'ajoute telle quelle. **Ne jamais modifier ni supprimer une ligne ou un fichier déjà présent**, même si sa formulation diffère du clone — une différence de formulation est presque toujours une adaptation volontaire faite pendant le projet, pas un oubli
-5. Toute règle, ligne ou fichier ajouté par le dev qui n'existe **pas** dans le template (règle métier propre au projet, convention personnalisée, fichier hors structure standard) reste intouché — il n'a par définition aucun équivalent dans le clone à comparer, donc rien ne le désigne jamais comme candidat à modifier
-6. Ne jamais toucher aux fichiers dont c'est le rôle de contenir la mémoire ou le contenu spécifique au projet (`STYLE.md`, `PAGES.md`, `COMPONENTS.md`, `frontend/PROGRESS.md`, `backend/PROGRESS.md`, `DECISIONS.md`, `CHANGELOG.md`, `SECURITY.md`, `CONTEXT.md`, `STACK.md`, `ERRORS.md`/`FEEDBACK.md` des deux couches, `preset-actif.md`, `DATABASE.md`, `TODO.md`) au-delà d'y créer le fichier s'il n'existait pas encore — jamais réécrire une ligne qui existe déjà. `docs/PROGRESS.md` (racine) fait exception : c'est un fichier généré, pas de la mémoire — le recréer/l'écraser avec la version du template ne perd rien puisqu'il est de toute façon reconstruit au prochain merge sur `main`
-7. Présenter la liste des ajouts trouvés (sur les trois emplacements) avant de les appliquer, pas après
-8. Une fois appliqué → mettre à jour la ligne de version en haut de ce fichier, et ajouter une entrée dans `CHANGELOG.md` ("Mise à jour du template vers X.Y.Z — [ce qui a été ajouté]")
+   Le sens de la comparaison ne va que dans un sens : chercher ce que le **template** a en plus, jamais ce que le **projet** a en plus
+4. **Règle stricte, jamais d'exception** : uniquement AJOUTER ce qui manque — une ligne absente d'une table ou une clé absente d'un JSON s'ajoute telle quelle. **Ne jamais modifier ni supprimer une ligne ou une clé déjà présente**, même si sa formulation diffère du clone — une différence de formulation est presque toujours une adaptation volontaire faite pendant le projet, pas un oubli
+5. Toute règle ou ligne ajoutée par le dev qui n'existe **pas** dans le template (règle métier propre au projet, convention personnalisée) reste intouchée — elle n'a par définition aucun équivalent dans le clone à comparer, donc rien ne la désigne jamais comme candidate à modifier
+6. Ne jamais toucher aux fichiers dont c'est le rôle de contenir la mémoire ou le contenu spécifique au projet (`STYLE.md`, `PAGES.md`, `COMPONENTS.md`, `frontend/PROGRESS.md`, `backend/PROGRESS.md`, `DECISIONS.md`, `CHANGELOG.md`, `SECURITY.md`, `CONTEXT.md`, `STACK.md`, `ERRORS.md`/`FEEDBACK.md` des deux couches, `preset-actif.md`, `DATABASE.md`, `TODO.md`) au-delà d'y créer le fichier s'il n'existait pas encore (déjà géré par `apply-update.sh` à l'étape 2) — jamais réécrire une ligne qui existe déjà. `docs/PROGRESS.md` (racine) fait exception : c'est un fichier généré, pas de la mémoire — le recréer/l'écraser avec la version du template ne perd rien puisqu'il est de toute façon reconstruit au prochain merge sur `main`
+7. Présenter la liste des ajouts trouvés pour `docs/CLAUDE.md` et `settings.json` avant de les appliquer, pas après — ce qu'a déjà fait `apply-update.sh` à l'étape 2 est mécanique et sans risque (jamais d'écrasement), donc déjà appliqué, mais reste listé dans son propre résumé affiché à l'écran
+8. Une fois appliqué → mettre à jour la ligne de version en haut de ce fichier, ajouter une entrée dans `CHANGELOG.md` ("Mise à jour du template vers X.Y.Z — [ce qui a été ajouté]"), puis supprimer le clone temporaire (`rm -rf` du chemin affiché par `apply-update.sh`)
 9. Rappeler à l'utilisateur qu'il peut tout annuler avec `git restore`/`git checkout` tant qu'il n'a pas commité cette mise à jour lui-même

@@ -59,6 +59,15 @@ if [ "$LOCAL_MAJOR" -ge 2 ] 2>/dev/null; then
   exit 0
 fi
 
+if [ "$REMOTE_MAJOR" != "2" ]; then
+  echo "No specific migration steps written for jumping straight from $LOCAL_VERSION to $REMOTE_VERSION."
+  echo "The only known structural migration covers 1.x -> 2.x (below) — it may not cover everything"
+  echo "for a bigger jump. Check the changelog above, and use docs/CLAUDE.md's own update procedure"
+  echo "(step 3: compare docs/CLAUDE.md, .claude/, .github/workflows/ against the latest clone) to"
+  echo "catch anything a version-specific guide would miss."
+  echo
+fi
+
 EM_DASH=$(printf '\xe2\x80\x94')
 
 cat <<EOF
