@@ -1,5 +1,5 @@
 # CLAUDE
-> Version du template : 2.1.0
+> Version du template : 2.2.0
 > LIRE EN PREMIER. Toujours. Sans exception.
 > Ce fichier est le cerveau du projet — il n'explique rien lui-même, il oriente vers `docs/frontend/`, `docs/backend/` ou les fichiers partagés à la racine de `docs/`.
 > Ne jamais supposer le contexte — lire `docs/frontend/PROGRESS.md` et/ou `docs/backend/PROGRESS.md` selon la couche juste après.

@@ -1,5 +1,5 @@
 # claude-dev-workflow
-> Version 2.1.0
+> Version 2.2.0
 
 Un système de documentation structuré pour travailler efficacement avec Claude sur des projets web.
 

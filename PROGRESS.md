@@ -8,6 +8,13 @@
 
 <!-- SENTINEL: nouvelle session ICI, juste en dessous de cette ligne — jamais en bas du fichier -->
 
+### Session 004 — 31/08/2026
+- Fait : nouvelle entrée générique dans `docs/frontend/FEEDBACK.md` — mélange hauteur de section en viewport (`svh`/`vh`/`min-h-screen`) et contenu à hauteur fixe en px, invisible sur petit écran, casse sur grand écran. Version publiée 2.2.0 (README + `docs/CLAUDE.md` alignés, `CHANGELOG.md` `[Unreleased]` → `[2.2.0]` daté)
+- Corrigé : rien (pas de bug ce round, ajout de contenu seulement)
+- Bloqué sur : rien
+- Prochaine étape : rien d'identifié
+- Fichier à lire en priorité : docs/frontend/FEEDBACK.md — nouvelle entrée en bas du groupe `Date : —`
+
 ### Session 003 — 24/08/2026
 - Fait : passe de supervision à 9 agents (3 QA sur le pipeline apply-update.sh/merge-progress.sh non commité — revue adversariale, tests bout-en-bout, cohérence doc ; puis 6 sur le système de mémoire `docs/` — index/routage, duplication inter-fichiers, passage à l'échelle, terminologie, coût token de session-start.sh, format de stockage), tous en parallèle, findings vérifiés à la main avant application. Corrigé sur leur base : SECURITY.md absent de la table Aiguillage (bug de routage réel), note grep-avant-lecture-complète pour ERRORS/FEEDBACK/DECISIONS volumineux ; `session-start.sh` n'injecte plus la section "Mise à jour du template" (~24% du fichier) sauf si une mise à jour est réellement disponible — testé dans les deux cas, ~800 mots économisés par session normale sans rien perdre
 - Corrigé : 4 bugs réels trouvés par la revue adversariale, tous reproduits puis vérifiés corrigés — `merge-progress.sh` fragmentait une session dont le corps contenait un bloc de code commençant par `### Session` (manque de conscience des fences) ; `merge-progress.sh` inversait l'ordre de deux sessions à la même date ; `apply-update.sh` avalait silencieusement un échec `curl` (pipe `curl | tar` masquait le code de sortie, `tar` sur flux vide sort à 0) et rapportait "rien à ajouter" au lieu d'échouer ; `changelog.sh` affichait le texte de migration "1.x → 2.x" pour n'importe quel saut de version future, même au-delà de 3.x

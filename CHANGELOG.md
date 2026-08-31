@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.0] - 2026-08-31
+
+### Added
+
+- `docs/frontend/FEEDBACK.md`: new generic (`Date : —`) pattern — mixing a viewport-height section (`svh`/`vh`/`min-h-screen`) with fixed-pixel-height content inside it looks fine on small/medium screens but leaves the content stranded in empty space on large ones.
+
 ## [2.1.0] - 2026-08-24
 
 ### Added
